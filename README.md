@@ -11,7 +11,7 @@ In the included benchmark, HKD Socket reduces measured TCP application
 payload by approximately **261×** while reconstructing the transmitted
 state exactly.
 
-> **Measured on both Linux and macOS: ~261× TCP payload reduction (not a universal 261× runtime speedup).**
+> **Measured on both Linux and macOS: \~261× TCP payload reduction.**
 
 ------------------------------------------------------------------------
 
@@ -62,8 +62,6 @@ baseline.
 ------------------------------------------------------------------------
 
 # 🚀 Performance
-
-**Benchmark claim:** approximately **261× lower measured TCP application payload** for the included incremental-update workload, with exact reconstruction. This is a traffic-reduction result, not a claim of 261× universal wall-clock speedup.
 
 The included HKD Socket benchmark measures real TCP traffic between a
 sender and receiver and verifies the reconstructed result
@@ -117,7 +115,7 @@ large end-to-end gains.
 
 ------------------------------------------------------------------------
 
-# 🧠 Why HKD Socket Reduces Traffic
+# 🧠 Why HKD Socket Is Fast
 
 HKD Socket is **not simply another compression codec**.
 
@@ -131,172 +129,69 @@ HKD Socket asks a different question:
 > information must actually cross the network to advance that state
 > exactly?**
 
-Consider successive states:
-
-$$
-\boxed{
-X_0,\;X_1,\;X_2,\;\ldots,\;X_n
-}
-$$
-
-A conventional full-file transmission repeatedly communicates an amount
-proportional to:
-
-$$
-\boxed{
-T_{\mathrm{full}}
-\propto
-\sum_{k=0}^{n}|X_k|
-}
-$$
-
-If each state is approximately the same size $N$, the transmitted volume
-is approximately:
-
-$$
-\boxed{
-T_{\mathrm{full}}
-\approx
-(n+1)N
-}
-$$
-
-HKD∞ instead maintains a continuation state and identifies the **active
-portion** required to advance:
-
-$$
-\boxed{
-X_k \longrightarrow X_{k+1}
-}
-$$
-
-Let
-
-$$
-\boxed{
-A_k \subseteq X_k
-}
-$$
-
-denote the active information associated with the transition.
-
-Conceptually, HKD Socket seeks a transport representation:
-
-$$
-\boxed{
-T_k =
-\mathcal{H}_{\infty}
-\left(
-X_k,\,
-X_{k+1},\,
-S_k
-\right)
-}
-$$
-
-where $S_k$ represents synchronized continuation state.
-
-The receiver performs:
-
-$$
-\boxed{
-(X_k,S_k,T_k)
-\xrightarrow{\;\mathcal{H}_{\infty}\;}
-(X_{k+1},S_{k+1})
-}
-$$
-
-The critical property is **exactness**:
-
-$$
-\boxed{
-\widehat{X}_{k+1}=X_{k+1}
-}
-$$
-
-When the active information is much smaller than the complete state,
-
-$$
-\boxed{
-|A_k| \ll |X_k|
-}
-$$
-
-the required transmission can also be much smaller than retransmitting
-$X_k$ in its entirety.
+This distinction is particularly important for large objects that change
+incrementally.
 
 ------------------------------------------------------------------------
 
-# ∞ HKD∞ Active-State Reduction
+# ∞ HKD∞ Mathematical Model
 
-At a high level, a state can be represented as:
+HKD Socket treats a transmitted object as a sequence of states, written
+conceptually as **X0, X1, X2, ..., Xn**. A conventional full-state
+transport sends each complete state, so its total transmitted volume
+grows approximately with the sum of the sizes of all states. If each
+state contains approximately **N bytes** and there are **n + 1 states**,
+conventional transmission therefore communicates approximately **(n + 1)
+× N bytes** before accounting for ordinary protocol overhead.
 
-$$
-\boxed{
-X=A\cup I
-}
-$$
+HKD∞ instead maintains synchronized continuation state between the
+sender and receiver. For each transition from state **Xk** to state
+**X(k+1)**, HKD∞ identifies an active subset **Ak** containing the
+information necessary to advance the receiver to the next exact state.
+The remainder of the state is treated as already established information
+and does not need to be retransmitted merely because another version has
+been produced.
 
-where:
+The fundamental sparse-update condition is that the size of **Ak** is
+much smaller than the size of **Xk**. In mathematical terminology,
+**\|Ak\| \<\< \|Xk\|**. Under this condition, full-state transport
+remains proportional to the complete state size, while HKD∞ transport is
+governed primarily by the active information plus the continuation
+metadata required to reconstruct the transition.
 
--   \(A\) is the currently **active state**
--   \(I\) is state whose existing representation can be **preserved**
+Conceptually, conventional transmission has total communication
+proportional to **the sum of \|Xk\| over all k**, whereas HKD∞ seeks
+communication proportional to **the sum of \|Ak\| plus continuation
+metadata over all k**. The ratio between these quantities describes the
+available traffic-reduction opportunity.
 
-After each transition, HKD∞ constructs the next continuation state:
+The receiver is required to reconstruct each new state exactly. If the
+reconstructed state is denoted **X-hat(k)**, the exactness requirement
+is simply that **X-hat(k) equals Xk for every transmitted state**. The
+included benchmark verifies this requirement independently using
+SHA-256: the sender and receiver must produce identical SHA-256 digests
+for the reconstructed final object.
 
-$$
-\boxed{
-(A_k,S_k)
-\xrightarrow{\;\mathcal{H}_{\infty}\;}
-(A_{k+1},S_{k+1})
-}
-$$
+------------------------------------------------------------------------
 
-For sparse modifications:
+# 🔄 Active-State Reduction
 
-$$
-\boxed{
-|A_k| \ll |X_k|
-}
-$$
+At a high level, HKD∞ divides the logical state into two conceptual
+components: an **active component A**, which requires new communication,
+and an **inactive or preserved component I**, whose information is
+already represented by the synchronized continuation state.
 
-Consequently, the useful scaling target becomes approximately:
+The purpose of HKD∞ is not to approximate or discard the inactive
+component. Instead, the existing receiver state preserves it while
+communication concentrates on the active component. After a successful
+transition, the resulting state becomes the continuation point for the
+next transition.
 
-$$
-\boxed{
-T_{\mathrm{HKD}}
-=
-O\left(
-\sum_k |A_k| + M_k
-\right)
-}
-$$
-
-where $M_k$ represents compact protocol information required for the
-transition.
-
-Full retransmission instead scales approximately as:
-
-$$
-\boxed{
-T_{\mathrm{full}}
-=
-O\left(
-\sum_k |X_k|
-\right)
-}
-$$
-
-Therefore, in the sparse-update regime:
-
-$$
-\boxed{
-\frac{T_{\mathrm{full}}}{T_{\mathrm{HKD}}}\gg1
-}
-$$
-
-HKD Socket's advantage increases when successive versions are **large**
-but their active changes are **small**.
+For sparse modifications, the active component can be much smaller than
+the complete object. If a very large object changes only in a relatively
+small number of places, the amount of information that must be
+communicated can therefore be dramatically smaller than the size of the
+complete object.
 
 The proprietary implementation contains additional mechanisms for
 efficiently maintaining and transporting this continuation state. Those
@@ -308,46 +203,30 @@ implementation details are not required to use HKD Socket.
 
 **Not in the conventional sense.**
 
-Compression exploits redundancy **inside the current payload**:
+HKD Socket and compression attack different sources of redundancy.
 
-$$
-X \longrightarrow C(X)
-$$
+Traditional compression attempts to find redundancy **within one
+payload** and encode that payload using fewer bits.
 
-HKD Socket instead exploits redundancy **between states already shared
-by the sender and receiver**:
+HKD Socket instead exploits information **already shared between
+successive sender and receiver states**.
 
-$$
-\boxed{
-(X_k,S_k)+\Delta_k
-\longrightarrow
-(X_{k+1},S_{k+1})
-}
-$$
+For example, suppose a **1 TB object** has already been established at
+the receiver and the next version differs by only **10 MB**.
+Conventional full-file transmission begins with another 1 TB logical
+transfer and may then attempt to compress it. HKD Socket instead seeks
+to communicate the information necessary to advance the existing 1 TB
+receiver state to the new state.
 
-where $\Delta_k$ represents the information required to advance
-the synchronized state.
+This distinction is particularly important for high-entropy binary data.
+A high-entropy object may offer relatively little conventional
+compression while still exhibiting enormous temporal redundancy if only
+a small portion changes between versions.
 
-For example, consider a **1 TB object** where only **10 MB** has
-changed. Traditional full transmission starts with a 1 TB transfer and
-may then compress it. HKD Socket instead attempts to make communication
-proportional to the information necessary to advance the receiver from
-its previous state to the new state.
+HKD Socket can therefore be described more precisely as a:
 
-In the sparse regime:
-
-$$
-\boxed{
-|\Delta_k| \ll |X_k|
-}
-$$
-
-This means HKD Socket can provide substantial traffic reduction even on
-**high-entropy binary data** that does not compress particularly well,
-provided changes between successive versions remain sparse.
-
-> **HKD Socket is a stateful transport optimization rather than merely a
-> file compressor.**
+> **Stateful continuation transport optimization rather than simply a
+> compression algorithm.**
 
 ------------------------------------------------------------------------
 
@@ -355,7 +234,19 @@ provided changes between successive versions remain sparse.
 
 HKD Socket is designed for **exact transport**.
 
-The benchmark verifies the final receiver state using SHA-256:
+Traffic reduction does not relax the correctness requirement.
+
+For every successful HKD Socket transition, the receiver must
+reconstruct exactly the state represented by the sender. The benchmark
+therefore compares cryptographic hashes rather than relying on
+approximate equality, similarity, compression ratios, or
+application-level interpretation.
+
+The required condition is:
+
+**SHA-256(sender state) = SHA-256(receiver state)**
+
+A successful benchmark reports:
 
 ``` text
 baseline_exact=True
@@ -363,16 +254,6 @@ hkd_exact=True
 cross_path_same_final_file=True
 exact=True
 ```
-
-The requirement is:
-
-$$
-\boxed{
-\operatorname{SHA256}\left(X_{\mathrm{sender}}\right)
-=
-\operatorname{SHA256}\left(X_{\mathrm{receiver}}\right)
-}
-$$
 
 ------------------------------------------------------------------------
 
@@ -386,6 +267,10 @@ Python socket.sendfile()
 HKD Socket
 ```
 
+Python's `socket.socket.sendfile()` is a strong baseline because it uses
+the operating system's high-performance file-transmission facilities
+when supported.
+
 The benchmark uses:
 
 -   **real TCP sockets**
@@ -396,8 +281,12 @@ The benchmark uses:
 -   **independent receiver reconstruction**
 -   **SHA-256 exactness verification**
 
-High-entropy data is intentional. It prevents the principal result from
-being explained by trivially compressible repeated bytes.
+High-entropy data is intentional. It prevents the benchmark from
+obtaining its principal gain simply because the source consists of
+trivially compressible repeated bytes.
+
+The benchmark result therefore measures the benefit of **maintaining
+state across transmissions**.
 
 ------------------------------------------------------------------------
 
@@ -412,7 +301,7 @@ cd dist_linux
 python test.py
 ```
 
-Expected output includes approximately:
+Expected result includes approximately:
 
 ``` text
 traffic_reduction_x=261.x
@@ -427,7 +316,7 @@ cd dist_macos
 python test.py
 ```
 
-Expected output includes approximately:
+Expected result includes approximately:
 
 ``` text
 traffic_reduction_x=261.x
@@ -435,39 +324,67 @@ exact=True
 traffic_target_pass=True
 ```
 
-Exact wall-clock timing will vary by machine. The principal reproducible
-metrics are **transmitted TCP payload reduction and exact
-reconstruction**.
+Exact wall-clock timing will vary by machine.
+
+The principal reproducible metrics are:
+
+> **Transmitted TCP payload reduction + exact reconstruction**
 
 ------------------------------------------------------------------------
 
 # 🆓 Free Edition
 
-HKD Socket Free allows the complete transport mechanism and benchmark
-behavior to be evaluated before purchasing Unlimited.
+HKD Socket Free is intended to allow the complete transport mechanism
+and benchmark behavior to be evaluated before purchasing Unlimited.
 
-### Maximum file size
+## Maximum File Size
 
 ``` text
 8 MiB
 8,388,608 bytes
 ```
 
-A file of exactly **8,388,608 bytes** is accepted.
+A file of exactly:
 
-A file of **8,388,609 bytes** exceeds the Free limit.
+``` text
+8,388,608 bytes
+```
 
-$$
-\boxed{
-\text{Free}
-\iff
-|X|\le 8{,}388{,}608\text{ bytes}
-}
-$$
+is accepted.
 
-The included `data_free.npz` exercises the Free edition at its maximum
-supported file size while still reaching the demonstrated benchmark
-regime.
+A file of:
+
+``` text
+8,388,609 bytes
+```
+
+exceeds the Free limit.
+
+In plain mathematical terms:
+
+**Free edition is permitted when file size is less than or equal to
+8,388,608 bytes.**
+
+The included `data_free.npz` is sized specifically to exercise the Free
+edition at its maximum supported file size while still reaching the
+demonstrated benchmark regime.
+
+Run:
+
+``` bash
+cd dist_linux
+python test.py
+```
+
+or:
+
+``` bash
+cd dist_macos
+python test.py
+```
+
+The Free benchmark is designed to demonstrate approximately **261× TCP
+payload reduction** while remaining inside the **8 MiB limit**.
 
 ------------------------------------------------------------------------
 
@@ -498,6 +415,9 @@ objects being transported exceed the Free evaluation limit.
 HKD Socket is designed around **streaming and stateful operation**
 rather than requiring an entire large object to reside in memory.
 
+The transport representation uses large-file-compatible addressing,
+making the architecture applicable to very large datasets.
+
 Potential applications include:
 
 -   AI/ML model checkpoints
@@ -512,47 +432,40 @@ Potential applications include:
 -   telemetry state
 -   large numerical arrays
 
+For very large objects, the distinction between **total state** and
+**active state** becomes increasingly important.
+
 If a PB-scale object changes only sparsely between transmissions,
 retransmitting the complete PB-scale state wastes network bandwidth
-regardless of how efficient the underlying full-file system call is.
+regardless of how efficient the underlying full-file transmission
+primitive is.
+
+HKD∞ is intended to avoid that repeated work.
 
 ------------------------------------------------------------------------
 
-# 📈 When Will HKD Socket Help Most?
+# 📈 Active Fraction
 
-Define the active fraction:
+A useful quantity for describing an HKD Socket workload is the **active
+fraction**.
 
-$$
-\boxed{
-\rho_k=\frac{|A_k|}{|X_k|}
-}
-$$
+For state k, define the active fraction conceptually as:
 
-The largest opportunity occurs when:
+**rho(k) = \|Ak\| / \|Xk\|**
 
-$$
-\boxed{
-\rho_k\ll1
-}
-$$
+When rho is close to **1**, most of the object has changed and there is
+relatively little historical state to exploit.
 
-or equivalently:
+When rho is much smaller than **1**, only a small fraction of the object
+requires new communication. This is the regime in which HKD Socket can
+provide large traffic reductions.
 
-$$
-\boxed{
-|A_k|\ll|X_k|
-}
-$$
+As the active fraction approaches zero, the potential advantage of
+avoiding complete retransmission increases.
+
+This leads to the practical workload rule:
 
 > ### Large object + relatively small changes + repeated transmission = strong HKD Socket workload.
-
-As
-
-$$
-\rho_k\rightarrow0,
-$$
-
-the opportunity to eliminate redundant transmission grows.
 
 If every byte changes unpredictably between every transmission, there is
 little historical state to exploit and HKD Socket should **not** be
@@ -561,42 +474,66 @@ expected to produce a 261× reduction.
 > **261× is a measured benchmark result, not a universal compression
 > ratio.**
 
+Performance depends on workload structure.
+
 ------------------------------------------------------------------------
 
-# ⚙️ Runtime Characteristics
+# ⚙️ Runtime Scaling
 
-For an object of size $N$ with active modification volume $a$, where
+Let **N** represent the complete object size and **a** represent the
+amount of active modification data for a particular transition.
 
-$$
-\boxed{
-a\ll N
-}
-$$
+A conventional complete transfer communicates an amount of data governed
+primarily by **N**.
 
-full transmission is governed by the complete object size:
+In the sparse-update regime, HKD∞ instead seeks a continuation cost
+governed primarily by **a plus the metadata necessary to describe and
+reconstruct the transition**.
 
-$$
-\boxed{
-T_{\mathrm{full}}\sim N
-}
-$$
+The important condition is:
 
-while the HKD∞ continuation target in the sparse-update regime is:
+**a \<\< N**
 
-$$
-\boxed{
-T_{\mathrm{HKD}}
-\sim
-a+\text{continuation metadata}
-}
-$$
+This distinction becomes increasingly important as N becomes very large.
+If a TB-scale or PB-scale object changes sparsely, repeatedly
+retransmitting N bytes wastes network bandwidth even if the underlying
+full-file transmission primitive itself is highly optimized.
+
+HKD Socket is designed to avoid that repeated full-state communication.
 
 The included **8 MiB benchmark** is intentionally small enough to run
 quickly while being large enough to demonstrate stable sparse-update
 transport behavior.
 
-The same HKD∞ transport principle is used by Unlimited without the Free
-edition's 8 MiB file-size ceiling.
+The same HKD∞ transport principle is used by the Unlimited edition
+without the Free edition's 8 MiB file-size ceiling.
+
+------------------------------------------------------------------------
+
+# 📊 Interpreting the 261× Result
+
+The measured approximately **261× result is a TCP payload-reduction
+measurement for the included sparse-update benchmark**.
+
+It is not a claim that every network workload will receive a 261×
+reduction, nor that every application will execute 261× faster.
+
+The benchmark represents a workload where successive states are large
+relative to their active modifications. In that regime, HKD∞ can avoid
+transmitting information already established at the receiver.
+
+If every byte changes independently and unpredictably between successive
+versions, the active fraction approaches 1 and there is correspondingly
+less redundant transmission for HKD Socket to eliminate.
+
+The benchmark result should therefore be interpreted as:
+
+> **Approximately 261× less TCP application payload than repeated full
+> `socket.sendfile()` transmission on the included sparse-update
+> workload, while maintaining exact receiver reconstruction.**
+
+The same approximately **261× TCP payload-reduction result** is
+demonstrated by the included Linux and macOS benchmark distributions.
 
 ------------------------------------------------------------------------
 
@@ -621,7 +558,8 @@ The goal is deliberately simple:
 + import hkd_socket as socket
 ```
 
-while allowing large, repeatedly changing state to use HKD∞ transport.
+while allowing large, repeatedly changing state to use **HKD∞
+transport**.
 
 ------------------------------------------------------------------------
 
@@ -629,54 +567,37 @@ while allowing large, repeatedly changing state to use HKD∞ transport.
 
   Property                                                        HKD Socket
   -------------------------------------- -----------------------------------
-  Linux measured TCP payload reduction                            **~261×**
-  macOS measured TCP payload reduction                            **~261×**
+  Linux measured TCP payload reduction                            **\~261×**
+  macOS measured TCP payload reduction                            **\~261×**
   Reconstruction                                                   **Exact**
   Verification                                                   **SHA-256**
   Transport                                                     **Real TCP**
   Test payload                                       **High-entropy binary**
-  Free maximum                                                     **8 MiB**
+  Free maximum                                   **8 MiB / 8,388,608 bytes**
   Unlimited maximum                        **No HKD Socket file-size limit**
 
 ------------------------------------------------------------------------
 
 # ⚡ HKD∞ Transport Summary
 
-At the highest level, HKD Socket replaces repeated full-state
-transmission:
+At the highest level, HKD Socket replaces repeated complete-state
+transmission with **continuation-preserving active-state transport**.
 
-$$
-\boxed{
-X_0\rightarrow X_1\rightarrow X_2\rightarrow\cdots\rightarrow X_n
-}
-$$
+Instead of treating every new version as an entirely new object that
+must be sent from beginning to end, HKD∞ treats the receiver's existing
+state as part of the transport context.
 
-with continuation-preserving active-state transport:
+For each transition:
 
-$$
-\boxed{
-(X_k,S_k)
-\xrightarrow{\;\mathcal{H}_{\infty}(A_k)\;}
-(X_{k+1},S_{k+1})
-}
-$$
+-   **Xk** represents the current complete state.
+-   **X(k+1)** represents the next complete state.
+-   **Ak** represents the active information required for the
+    transition.
+-   The desired sparse regime is **\|Ak\| \<\< \|Xk\|**.
+-   The reconstructed receiver state must equal the sender state
+    exactly.
 
-subject to:
-
-$$
-\boxed{
-|A_k|\ll|X_k|
-}
-$$
-
-while requiring:
-
-$$
-\boxed{
-\widehat{X}_k=X_k
-\qquad\forall k
-}
-$$
+The objective is simple:
 
 > **Do not repeatedly transmit information that the receiver already
 > has.**
