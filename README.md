@@ -11,7 +11,7 @@ In the included benchmark, HKD Socket reduces measured TCP application
 payload by approximately **261×** while reconstructing the transmitted
 state exactly.
 
-> **Measured on both Linux and macOS: \~261× TCP payload reduction.**
+> **Measured on both Linux and macOS: ~261× TCP payload reduction (not a universal 261× runtime speedup).**
 
 ------------------------------------------------------------------------
 
@@ -62,6 +62,8 @@ baseline.
 ------------------------------------------------------------------------
 
 # 🚀 Performance
+
+**Benchmark claim:** approximately **261× lower measured TCP application payload** for the included incremental-update workload, with exact reconstruction. This is a traffic-reduction result, not a claim of 261× universal wall-clock speedup.
 
 The included HKD Socket benchmark measures real TCP traffic between a
 sender and receiver and verifies the reconstructed result
@@ -115,7 +117,7 @@ large end-to-end gains.
 
 ------------------------------------------------------------------------
 
-# 🧠 Why HKD Socket Is Fast
+# 🧠 Why HKD Socket Reduces Traffic
 
 HKD Socket is **not simply another compression codec**.
 
@@ -148,7 +150,7 @@ T_{\mathrm{full}}
 }
 $$
 
-If each state is approximately the same size (N), the transmitted volume
+If each state is approximately the same size $N$, the transmitted volume
 is approximately:
 
 $$
@@ -192,7 +194,7 @@ S_k
 }
 $$
 
-where (S_k) represents synchronized continuation state.
+where $S_k$ represents synchronized continuation state.
 
 The receiver performs:
 
@@ -221,7 +223,7 @@ $$
 $$
 
 the required transmission can also be much smaller than retransmitting
-(X_k) in its entirety.
+$X_k$ in its entirety.
 
 ------------------------------------------------------------------------
 
@@ -270,7 +272,7 @@ O\left(
 }
 $$
 
-where (M_k) represents compact protocol information required for the
+where $M_k$ represents compact protocol information required for the
 transition.
 
 Full retransmission instead scales approximately as:
@@ -323,7 +325,7 @@ $$
 }
 $$
 
-where (`\Delta`{=tex}\_k) represents the information required to advance
+where $\Delta_k$ represents the information required to advance
 the synchronized state.
 
 For example, consider a **1 TB object** where only **10 MB** has
@@ -563,7 +565,7 @@ expected to produce a 261× reduction.
 
 # ⚙️ Runtime Characteristics
 
-For an object of size (N) with active modification volume (a), where
+For an object of size $N$ with active modification volume $a$, where
 
 $$
 \boxed{
@@ -627,8 +629,8 @@ while allowing large, repeatedly changing state to use HKD∞ transport.
 
   Property                                                        HKD Socket
   -------------------------------------- -----------------------------------
-  Linux measured TCP payload reduction                            **\~261×**
-  macOS measured TCP payload reduction                            **\~261×**
+  Linux measured TCP payload reduction                            **~261×**
+  macOS measured TCP payload reduction                            **~261×**
   Reconstruction                                                   **Exact**
   Verification                                                   **SHA-256**
   Transport                                                     **Real TCP**
