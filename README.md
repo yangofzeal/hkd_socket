@@ -638,6 +638,10 @@ Maximum file size:
 No HKD Socket file-size limit
 ```
 
+### Receiver Requirement
+
+HKD Socket requires HKD-aware transport at both ends of the network connection to achieve the measured ~261× TCP payload reduction. The sender transmits an initial state followed by compact HKD∞ continuation updates rather than retransmitting the complete file each time, so the receiving endpoint must preserve synchronized state and reconstruct each new version exactly. The receiving application itself can still be ordinary Python or other unmodified software if an HKD Socket receiver or proxy sits in front of it and presents the reconstructed data as a normal byte stream or file. In short: the application behind the receiver does not have to change, but the network endpoint receiving HKD traffic must understand HKD Socket.
+
 ------------------------------------------------------------------------
 
 # 🛒 Get HKD Socket Unlimited
