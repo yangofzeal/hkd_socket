@@ -115,7 +115,7 @@ large end-to-end gains.
 
 The larger benchmark was run with:
 
-python test_large.py local --size-gib 0.20 --versions 20 --changed-mib 1
+```python test_large.py local --size-gib 0.20 --versions 20 --changed-mib 1```
 
 Here, --size-gib 0.20 means the persistent file state is about 204.8 MiB, --versions 20 means that state is transmitted or updated 20 times total, and --changed-mib 1 means that after the first complete snapshot, only 1 MiB changes in each later version. A conventional full-state socket.sendfile() path therefore retransmits roughly 204.8 MiB × 20 = 4.0 GiB, while HKD Socket sends the initial 204.8 MiB once and then only nineteen 1 MiB active updates, for about 223.8 MiB plus tiny protocol metadata. On macOS the measured result was:
 
