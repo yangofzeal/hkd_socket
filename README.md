@@ -113,6 +113,26 @@ On a bandwidth-constrained network, avoiding hundreds of bytes of
 transmission for each byte actually required can translate into very
 large end-to-end gains.
 
+The larger benchmark was run with:
+
+python test_large.py local --size-gib 0.20 --versions 20 --changed-mib 1
+
+Here, --size-gib 0.20 means the persistent file state is about 204.8 MiB, --versions 20 means that state is transmitted or updated 20 times total, and --changed-mib 1 means that after the first complete snapshot, only 1 MiB changes in each later version. A conventional full-state socket.sendfile() path therefore retransmits roughly 204.8 MiB × 20 = 4.0 GiB, while HKD Socket sends the initial 204.8 MiB once and then only nineteen 1 MiB active updates, for about 223.8 MiB plus tiny protocol metadata. On macOS the measured result was:
+
+BASELINE tx_bytes=4294967461 tx=4.000 GiB elapsed_s=2.006864
+HKD tx_bytes=234671869 tx=223.801 MiB elapsed_s=0.442248 active_bytes=19922944 active_ranges=19
+
+same_final_source_sha256=True
+payload_reduction_x=18.302012
+wall_clock_speedup_x=4.537868
+baseline_elapsed_s=2.006864
+hkd_elapsed_s=0.442248
+baseline_tx=4.000 GiB
+hkd_tx=223.801 MiB
+PASS_CLIENT=True
+
+This larger run shows the intended HKD∞ scaling more clearly than the earlier --size-gib 0.05 --versions 10 --changed-mib 1 test. In the 0.05 GiB run, the file was only about 51.2 MiB and there were 10 versions, so the full-send baseline moved about 512 MiB, while HKD moved about 60.2 MiB, giving an 8.50× payload reduction. In the new 0.20 GiB run, the persistent state is four times larger and the number of versions doubles to 20, while the active change remains fixed at only 1 MiB per version. That causes the full-send baseline to grow to 4.0 GiB, while HKD grows only to about 223.8 MiB, producing an 18.30× payload reduction—more than twice the 8.50× reduction from the smaller test. The wall-clock speedup does not scale identically because loopback performance is also influenced by memory copies, filesystem writes, system calls, and receiver processing; nevertheless, HKD still completed the Mac run in 0.442 s versus 2.007 s, or 4.54× faster, while reconstructing exactly the same SHA-256 state. The previously marketed ~261× HKD Socket figure comes from a different workload with many more versions and extremely tiny active updates: the gain is fundamentally bounded by how much unchanged state can be reused. With 10 versions, the theoretical ceiling is below 10× because HKD must send the first full snapshot; with 20 versions, the ceiling is below 20×, which is why this run approaches 18.3×. With hundreds of versions and only a few kilobytes changing each time, the full-retransmission baseline repeatedly sends the entire object while HKD continues sending almost only the active deltas, allowing ratios such as ~261×. In other words, 8.5×, 18.3×, and 261× are not conflicting numbers—they are different points on the same scaling curve, controlled primarily by state size, number of versions, and fraction of the state that changes per update.
+
 ------------------------------------------------------------------------
 
 # 🧠 Why HKD Socket Is Fast
