@@ -316,10 +316,9 @@ state across transmissions**.
 
 Prebuilt distributions are supplied for **Linux** and **macOS**.
 
-## Linux
+## Test python script
 
 ``` bash
-cd dist_linux
 python test.py
 ```
 
@@ -329,13 +328,6 @@ Expected result includes approximately:
 traffic_reduction_x=261.x
 exact=True
 traffic_target_pass=True
-```
-
-## macOS
-
-``` bash
-cd dist_macos
-python test.py
 ```
 
 Expected result includes approximately:
