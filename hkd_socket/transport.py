@@ -1,97 +1,118 @@
-# HKD∞ OBFUSCATE v3 — PYTHON-3.4-COMPATIBLE PROTECTED MODULE
-# Source payload; no marshal/code-object version dependency.
-# All protection work occurs once at import; protected calls have no wrapper.
-import hashlib as _hh
-import zlib as _hz
+# -*- coding: utf-8 -*-
+# HKD OBFUSCATE v4 - portable source payload, no marshal/code-object dependency.
+# Protection is import-time only; protected functions have no per-call wrapper.
+def _hkd_v4_bootstrap(_g):
+    import binascii as _hb
+    import hashlib as _hh
+    import struct as _hs
+    import zlib as _hz
 
-_B=(bytes.fromhex('345fd9d913a3443e90afe0e9e3a124264ccf9cd08311ea935845a6625dd33b96fe23e8447e55d96cad60b885c258728254d554cbc895da2ffe776a8477718db28d7cac7b7053f94e409bbbd7b50396f14590e9e9a9780d303d1430578108ab084001f3c1959a77233ba01fd4cb540fb7746c2b056683ac5ee994c03420c9c5a8'),
-bytes.fromhex('f6219c9758a9564801e2ae6e6897d1afc0b32f081c7e26b63a5ddc0b1eae9541b4bc4d853815aa8ce399e24f726c1eded8a0aa6982a54760ab7edeb94f4bf42222d979a7fec2a2ae127033f4b8d2751855904b3068434ecf33c8b67fc0e8ffb1780dcae02df496132f89782e'),
-bytes.fromhex('7ae908d9f0c36653bdaaf6a218645c2e710e65c77405ed1d214fc20d3377d7be47cf044851999220c5ca78f8c11645a450de84e11d4eaa3b828305e4b0f5f86282496b18419f071b3346d9267af49149a08501a519073ae404bbc9d2e1af0ec56f0a8c9aeb2040af254c333281e85b82619ca55665871a9c3298b89f3948761c'),
-bytes.fromhex('98875ef097383b782085aaf4a741b261d518269fb65f6b13d07fd63d39f6b9883cce0e9e486dc853ee28b87b9224d5b4cbf015752d6df25445acf353c07876da34d28208d5efac5259fd46ca8cb6ebc4d926730a07b7b745dbd4c74fb6f92e0fe7102d127a4bfbb8f1e123454e3093bf4c4706478000452335be956cca1e3403'),
-bytes.fromhex('27c92aba87d47ae722149c162a1d17670b1f977b3cd055af5683fe1eee4f5da43edd1ae8ba641159d4f255270a0fbf143af6c39c48f0c5f58d6a245cfd9dec95568dace74f0ef0afe26c6c6480886f3eecc0bd3d101270e05272ee4ba50c717337907f3e6537a5d387eb35ce42b1ee19cd177f967e70ab809c0ae9e1035a8835'),
-bytes.fromhex('6efd0d6d9facec03adb2fe2348e3280c2d63740b5e5e9cbf752ca88bcc71bf26e41f14744049b546a87ce2cabf1648114cef46586b609eb644c5df0c3f986db357e060ddc8984865f14c8c6475dc991f44a061fca6e5957194b850318a65f14484c94512b07aa41b3243f29902b30e1ebc25af12407575d30920e4e943a1404d'),
-bytes.fromhex('486d51bb77de6e5c7f6db23f0080d31c6adcec3500f1ff845420961d3bfdc406c6295efbe2fc1c5d8f2a3e34ecbb81eed9a178f923b44be925062d21e449c00bad31039551a42e797a969c69a03541623429d17167f3cc217ff7410905a37b9674eeacc76004cec65d8ec89a9496417c8c7402c2d5c038c5d3a8744c2181ce2e'),
-bytes.fromhex('aa727d65c68adfc77bb22c71e61aa50e4c4c59d68cced09ea837123b1dbbf4af5aea431161bacc8def81ae47b6d9c0a6cc55063e255284cca0de3e77796bf23eec09fb921f92ca6b8b5259b8323bb30efb279d4a1d1c7d5b20f91ae67bb99e6b14a2872019d763af8d1b1a32f3aaae49382bc3c92f296253a84c594e58021337'),
-bytes.fromhex('18b25af42cd2bfb7644d4d22b0516d9355d00981062a1a214bff4a955fe42749ce4da540b8f1a091f10c5b783980e8c19cb2ef54dc6249234bdfb2cf6169d3593395538ca2dcb0d53c7ecaaf93e42379728e53a90a02fde8794f688aa33790974662ddc81a172747168a10974d14185a577e5ff4754ed3ba82df107bd389e6eb'),
-bytes.fromhex('71e1b71ba3287ef66be400589d2bc8b90a43ba767aedf4b732ac11ef80f38ca8ff6e7e6713f4756a68ca7094484d6ddf7a6720332d96b021ed679708dce315113dc6c8682d531e2c2c61531dd08dd6d8496ae968e7ebcd634ff77318f21e63d5770ca4497b062f4a71ea0ed5af7932f876a46d1ac24e785f00d236c295a85877'),
-bytes.fromhex('610ce7046fca08a4ca58d1d182496d75afd252f5b102002b8a548ec36ca52e2d14402c201708d3419ddb1ae4439bf7a3a88e074915b8f1fa630c721c8ad72e89b5265622504f946aef410ac60363c4a6df709fcca735196d1869b383cf8088f92673f85a631a6fc190193c43266a8aa4bd16052ab0e9ff321fc68b0e054874b3'),
-bytes.fromhex('5949d53a76c4b92cf84717d3df77ae930795b2480b644909f52325385af2dd0093b1514f848a6bc0ec22a25155b520f77cee0f4fac17b2f2f174cf9c6923fc55d5c35fb14f7e74b5602aaf17b6c6393c4fbec3fb529f8fa18eae3ec765f3220814fe5e8021d3dea6978a47f8906921f1ed181237894d8f7b99ae64e6dec73869'),
-bytes.fromhex('21e21cb8d0e18138e3cc6639381f84d9d26c722364f820d7eec1fa9d5d9949a8045e3ee50e4259b1076b7303af9e8154dc69b524908fdb1b1268717a6b44a4b7bce1b8c871d65ebaf68831a8546800f482167a79e0f5cf0fc44840370894c9b0ab70b52892b69789998d07807be65824cbeb85bd826e87347d94e7228f5ffd03'),
-bytes.fromhex('a670b0e665f8d7747a533240b6105b26d87c51ee2943bf21f754f9a722ddbbf2d02d713e4d6fac110fb2af54d93a01443ce11e472d33da45d9a1b7ee84b802924ad89ff89bca28ef2c23bbb26cfa1867a0996677e7fe98f176dbaca7cc33af960203aabf44dc43cf29eca37d21bf09b78b8b251f28d40495d4fac54825ae06a8'),)
-_I=(7, 3, 0, 12, 5, 6, 10, 2, 9, 13, 11, 4, 8, 1)
-_L=(bytes.fromhex('b4d795c29dd292b38873e8d4ca66c1a2d8acb9527a6dd28788f7a51ca552a321'),
-bytes.fromhex('70292e16ccdbfc779eed2a2638fecdae4fbc46f129d37827d1c796de69b32211'),
-bytes.fromhex('bbbc7a37c39fbc57c9ede2ec982d1e8393be3c95cd4a7d4131a5da1e625477a3'),
-bytes.fromhex('ee40cb0aabe8c7d74c0ef4ad9a16b09d157a412e129c5018708c4c64528c7742'),
-bytes.fromhex('d1039b6acaaf780baaa8a9e360218c33adb69a9ea947d82957609981496353d4'),
-bytes.fromhex('f7b32245facf551c2f8e5e1f113c8ac0de1e6a111a485db63a7485adf26b32ec'),
-bytes.fromhex('eec5afa8edad767f5e473c64f0c4306ccd6b08e858b1c7ffa079c17fd844f1df'),
-bytes.fromhex('7f525b2fb2cca1665f8d70f2f3fa8b5d48d657f6b624061f9f4470470abddabb'),
-bytes.fromhex('a2cf0e457aaf1923346bef268637e65c281ce292644c62297d6c7355a224cb8c'),
-bytes.fromhex('da7d7a6ea73b62789924585d386283bd7a2ddd9539a2deb48388f9a7e4abca77'),
-bytes.fromhex('f0df93e87d453e45a156153ec2b2df324c20453362518b3817420a2ffeca1059'),
-bytes.fromhex('45d5c7ac7baec37bd85d76756cc5e4fd938f04d8cc8c9325ec20410584202411'),
-bytes.fromhex('89226211d0ed1c540ee89be9d7d3418e7d67b60f7355a14084da84e6df80fd61'),
-bytes.fromhex('288b67881130cf57fac7a694ca63058c8db8c44a1aa54b67ebd559ec5ad291de'),)
-_R=bytes.fromhex('caffd552289dd4c845638e659ce0f40d35a132723022aedc3f451e19de80951f')
-_S1=bytes.fromhex('b4c44a1d49f84630e6a3d8f9e940b5fe9bac91bad310595a9d955dd8b13e68ff')
-_S2=bytes.fromhex('7e50262985a1f8adbb970e2cb7aaab9a1c50293fd48e23303c28fc9662bd3098')
+    _b = (
+        _hb.unhexlify('088c414346ba5a2a25154be2bb325fdb0fd11bae0a8884677d4f4b906f9bab038cfeb69b4e6147d5c148f8c533c024dc27a74d77ae7f6168820d75a1feac95da9b876e8ccb8dd574ce4a28a31992b1d360b809effd6c0531ebb27ada2f8309102a9b352801ad3e7c6c8f9a3a88ae6d4873dbb441a4ec755f4c19a532ff84b41b'),
+        _hb.unhexlify('72119d7725c0259f5ab640ea177141dd7a2e26ad06e403945cda850826e7b773271e0abe2c3c2ce0314390d08da7157c902a1e45e4481fd996bd3ba18b428140f3a709609a2cc264caa73e00a2520ae41ef1bb291031b6339ff1852d6e58a176af2c4bda00635d1fb22abe23f32f8aa6a86342d621501a82e6bc7d3cf79e3f0c'),
+        _hb.unhexlify('d1c6c95be0605c2323c0055efe39ba6c1a56b4f0c2b9e5d872a62f2a2fb89358438bc23ccaa197d14049affce52acfa8699fdc9fa60e5ce02bc0351bb6ab0d24365de0cb5bd8a529bed12cd8fb660055a057bde102ab9df6dfd2f20bcdb06de3e8a7796e8e03582a00c7c73ba7262d44fa037c06672a3b55b8ba3bcf2d62a769'),
+        _hb.unhexlify('7e0d62e3c775262d7c84e374c2e7f79d195ebe016928d079ff630ec81b92ff08e532b3e0ca94cb5fcb0c87e748e76f48b4946abb401aa0137a277634943ac595fd2a0d3fc509c4a9a46e320db03e62d25d185988144abcc563c999beb73a200a48bf6996a77f181045b8d4000efa45cd878ac76aee55557a3208202d39c2bfd4'),
+        _hb.unhexlify('b6c2a21479050b434ee6c14ee663cf6069e47f0c3a377a05eb42507401c3cfcafbfea7d2b91454305e6d57ee164604097af75aceda76bb224622911b716d470e51f15421bfba130ff843c83f66c0cb9f25109f257b71eeba3f5d6f893c3d641373e9de04d8ab2cc72f6d81b80a37275a9c32d67da229d0128a0b024333352216'),
+        _hb.unhexlify('c6d16091cee396b27034b984d0f60fd75e2b871607b963e2023d9fc8406a3c5206d1919b8c5ceb69f3c515017cd2d46904eabde2ca0b14ca4f2b811dee2ce398fc0c3edfb0aa111d915e7a53a8b2264079e5c9f61f42cf5cb497fc27c527f3d53b0ae46104c4b4a6ad0a14a2454737111b1aa47606b5aba1a57cf3ed674765c3'),
+        _hb.unhexlify('57e88338ffdca936425a6511f2b8f045e8cef5e2b606e2c597868fe6e37f63f252cd5d4a74b178c24f7a277156c3e2371056f73e0072fdfe1ad480a63430b7b70eb9811a97201f82a4374f22bd8aea21b374686c42b135142b99c91408e38573f20840c91a9b44631b018e0315713518f41274bdb007736cc99bac42be228d81'),
+        _hb.unhexlify('9f603242dd0fa1514a83f7bc4c3f34972520d521ba75eaa30150ef833c44242d5cc7b4ce912522ef43d597000069fa314a8f809a7d19b2ec176d0446152f3f9923aa9841191c0df04b297406febba20a1fbc04f6494b8bc6d67d21556aed06649319c9eba685ab7d3bb83ed1440c766d8792b8fc7c7faeae5515f1c258db8a56'),
+        _hb.unhexlify('b365ca0ef64445b55f81f15fcd1a399d4b604e5030b5fe60a6b8b961324d6c4a22586561c7dee799b2eda6bcad1d79d5b898fdea0487257f47c726f4f78519e894ee9c793544a6111ad34da1f7a2f8d66efcd4a26deafb25883b17adf869c956e9531dc08f32edac93c1b5d57edb430ddbee72ca263acbcee531713feb50f18d'),
+        _hb.unhexlify('04cfa133f66605ce209b1917ffd9a81014d61ef30ca0ac11f6d8b8aa896a44ccac54f4a3a07616e2d36e03b7b1326553c97bbb93eec7e9607b0303493babefdca0d3ab8b55cf12c968e9df944c676743c0eae90fcdf0aac99a4aa8c63c3ac5eb6934f4588be77a5f17a49d75efdc8ac2a02972ca0e67f2dcd694287655e34dd7'),
+        _hb.unhexlify('fd39f52c05832dcace29946804f122295687f8a8092b6400f43c7097c050f19f875e642f49cba8a52833982d8923f77e297108cf0f842307a83ae613d2e1109fbe24afa5c879ad6869f5e4e633b8a8e6393184af70321d228605ab434fb1ca6ed6dbf2934a8f8a1e5d9f1028cf61a9a6dfe30c6c7d740b2e97e240885b80313a'),
+        _hb.unhexlify('dabb3eeeeb2c9df8bed611d1e38b509791c48d1e8e63f507bd45120e14a470c16bcdc10b750f21dbe58b2889084c76f6b8508c14e47a24b4a9bc726d68f7944daf8d0f5fe60f9ad021745ccb237672b64b06bfac74098849cf0a2b60884542f88c4b0ec5cf381e8381e3cfccf859897db77956a096bcba479a37f68c'),
+        _hb.unhexlify('7b3e2180b2b7aa059319f8f7a684b292931ca2578898707f3e863d11cf2c6837b304317cf6271706f3bbb6fb6c0cb0e31ff9480d269faeaf044eb712e80a2e6d806c09ff9343061309a690cd5741305a87caa21800c9e080631fb4d49793ab3ba90b8f4700ca0ec1637a88d326a00be2ba07de1213f9d29d3b107dc0acef1b3b'),
+        _hb.unhexlify('e40b8b4b40c71671b9884117d2f10273dbea960f518322d6a875444206405a3007df01a4ccbda57ab8e961c4072a44f55a6e8b6865d515c9bc05de3a10122aa7ae458045806b7a5ecf9913d4f01428b55b41bc4eafb08c0fa7e1acb1abc8db5969fdc436dc8e4c8c707a6c42d5eb1dc089298412433252336d19786d75e2b0c2'),
+        _hb.unhexlify('0d13aeb014b497dc922f91427f1a9d5e0f9a083416106e7729531ce7db27408d4360bc2643254ab5f7bda0044b47a9c5282cb09b445301abf0d577b95a42e5b87b701f0b6f8c5434d5c55dc313c9384ef644011c7d5dd078b2caf9608689a8fd8ad935f26726697627a3b69984e196dce91e9904850686f6ed4fc679c3735457'),
+        _hb.unhexlify('aa725565768ae7c77d331561047a9ae787e8b3ff171bdc0502885ce5b9b1edb93ad2a5aa94d6d91b9ff81fa751158328ce5f8ea2a1ad316979f2cb97399450c4b390a08ca104af138fb26ff89da0d37b1fbb9e4039fa6509d6af04360a59d46b0b2fe12d8c8f44c3d5c2a67d92d792baa9ea59b0bb861f87fbef31bc196ffdb3'),
+        _hb.unhexlify('15071a41b03a3e8b3c214445c3b5fe6ea8baec1eb6b65d7e9123157552b96b68ecf3746cb0d4eb0d67c16e219d39c2f9ac3d34447afb47c22653c52a4a5246eee94f783e102d1cbc7402526ca6db76d7148e6bc24db72de5d230896890d9d0e375bbd8673534e0fac86e6a4de2a5c778ada7dced2f0ca324f2408a05f60bd432'),
+    )
+    _inv = (15, 1, 16, 13, 14, 6, 10, 4, 3, 2, 5, 8, 0, 9, 7, 12, 11)
+    _leaves = (
+        _hb.unhexlify('ee71516facaf8cde92a8f5e4c57ba1b6344fae6d62d9e17e2d0dd7a55b13e479'),
+        _hb.unhexlify('38f9ad94e3c9842030787173c77716d7c08811e88a2697e6abc3890903a385b6'),
+        _hb.unhexlify('7e1cbd73153150269653fb461ff78da44c817cc353a1b4149678a27a50c1b8bc'),
+        _hb.unhexlify('402e62084184fb245fd5cbd13c99425b1bbf59fff5e8840941b13257bd4c0a1d'),
+        _hb.unhexlify('98769e77187c006bb9e9131dcece95a620932fbaee5f896a4760b6117ae3e13d'),
+        _hb.unhexlify('0a082c6c2243df566e0c0c3134c7f420a9d2d16de20193e779ccc97acdf3dd00'),
+        _hb.unhexlify('af2cfc218be77e977a979a03acc222b228d8da0604bd54c5d4d7cda63387c7da'),
+        _hb.unhexlify('ea911091cdb477531c12aed1906315549530f86a5745f92728b0ea9e3dc70573'),
+        _hb.unhexlify('380910ee992e8c834171491f05b41dab187a46761624e6f0a99bda4ba1980f33'),
+        _hb.unhexlify('fdb944c5d99fbb26bea8da445b3051a1124443705c0111e8e2283cea6a2edae9'),
+        _hb.unhexlify('8d38342ce7a918cc42f465d8912549835e7adfc0a2c2afa459db7b78a4aa5d16'),
+        _hb.unhexlify('b5363447003bcb229724ceb51969336c1df3c75ae0606fe430a56d80d85550c5'),
+        _hb.unhexlify('0cbae08ac3d9106e901417015f75ee22f2d9904c252ec9dbdbde76631a247f64'),
+        _hb.unhexlify('54cd9a72a55dc3b689e1d3a305cbf33d0372f44be2aba8eae2ff5da2b0b12695'),
+        _hb.unhexlify('7a15b0882cae51097c01b7fca81bf6ee3e6281a93f6cffda1bf86d9af8d810fa'),
+        _hb.unhexlify('d0aea1ab4c78cddd5a7e5a69cfcffc7cf8d3eb50a4da5edd20293947c039e00b'),
+        _hb.unhexlify('147ad4f8220b91343badb356b8bf641256bc6380b226c8ac512be2495dd17093'),
+    )
+    _root = _hb.unhexlify('630f723d26ce75efc8bd77c84c647d924f71d78a5a5cf86ba2e9802c0bc683f5')
+    _share1 = _hb.unhexlify('55eda5f163d89abc0fa9ee2f50360fb8a1798cbdee89b7724aa601d666ef165c')
+    _share2 = _hb.unhexlify('9f79c9c5af812421529d38fa0edc11dc26853438e917cd18eb1ba098b56c4e3b')
 
-def _x(a,b):
-    return bytes(i^j for i,j in zip(a,b))
+    def _u32(_n):
+        return _hs.pack('>I', _n)
 
-def _n4(n):
-    return n.to_bytes(4,'big')
+    def _xor(_a, _c):
+        _o = bytearray(len(_a))
+        _i = 0
+        while _i < len(_a):
+            _o[_i] = _a[_i] ^ _c[_i]
+            _i += 1
+        return bytes(_o)
 
-def _ks(k,idx,n):
-    o=bytearray(); c=0; s=k+_n4(idx)
-    while len(o)<n:
-        o.extend(_hh.sha256(s+_n4(c)).digest()); c+=1
-    return bytes(o[:n])
+    def _ks(_key, _index, _length):
+        _o = bytearray()
+        _counter = 0
+        _seed = _key + _u32(_index)
+        while len(_o) < _length:
+            _o.extend(_hh.sha256(_seed + _u32(_counter)).digest())
+            _counter += 1
+        return bytes(_o[:_length])
 
-def _mr(v):
-    if not v:
-        return _hh.sha256(b'').digest()
-    v=list(v)
-    while len(v)>1:
-        if len(v)&1: v.append(v[-1])
-        v=[_hh.sha256(v[i]+v[i+1]).digest() for i in range(0,len(v),2)]
-    return v[0]
+    def _merkle(_values):
+        if not _values:
+            return _hh.sha256(b'').digest()
+        _level = list(_values)
+        while len(_level) > 1:
+            if len(_level) & 1:
+                _level.append(_level[-1])
+            _next = []
+            _i = 0
+            while _i < len(_level):
+                _next.append(_hh.sha256(_level[_i] + _level[_i + 1]).digest())
+                _i += 2
+            _level = _next
+        return _level[0]
 
-_K=_x(_S1,_S2)
-_P=[]
-_V=[]
-for _i in range(len(_I)):
-    _m=_B[_I[_i]]
-    _r=_x(_m,_ks(_K,_i,len(_m)))
-    _P.append(_r)
-    _V.append(_hh.sha256(_n4(_i)+_r).digest())
-if tuple(_V)!=_L or _mr(_V)!=_R:
-    raise ImportError('HKD∞ SHA-256 integrity verification failed')
+    _key = _xor(_share1, _share2)
+    _parts = []
+    _verify = []
+    _i = 0
+    while _i < len(_inv):
+        _masked = _b[_inv[_i]]
+        _raw = _xor(_masked, _ks(_key, _i, len(_masked)))
+        _parts.append(_raw)
+        _verify.append(_hh.sha256(_u32(_i) + _raw).digest())
+        _i += 1
 
-try:
-    _S=_hz.decompress(b''.join(_P)).decode('utf-8')
-except (ValueError, UnicodeDecodeError, _hz.error):
-    raise ImportError('HKD∞ protected payload reconstruction failed')
+    if tuple(_verify) != _leaves or _merkle(_verify) != _root:
+        raise ImportError('HKD protected payload integrity verification failed')
 
-_G=globals()
-_N={
-    '__name__':_G.get('__name__'),
-    '__doc__':_G.get('__doc__'),
-    '__package__':_G.get('__package__'),
-    '__loader__':_G.get('__loader__'),
-    '__spec__':_G.get('__spec__'),
-    '__file__':_G.get('__file__'),
-    '__cached__':_G.get('__cached__'),
-    '__builtins__':_G.get('__builtins__'),
-}
-_C=compile(_S,_G.get('__file__') or '<HKD-obfuscated>','exec',0,True,0)
-exec(_C,_N,_N)
+    try:
+        _source = _hz.decompress(b''.join(_parts)).decode('utf-8')
+    except Exception as _exc:
+        raise ImportError('HKD protected payload reconstruction failed: %s' % (_exc,))
 
-for _q,_v in list(_N.items()):
-    if _q != '__builtins__':
-        _G[_q]=_v
+    _filename = _g.get('__file__') or '<HKD-obfuscated>'
+    _code = compile(_source, _filename, 'exec', 0, True, 0)
 
-# Functions retain _N as their normal globals dictionary. Remove loader-only names
-# from the actual module namespace without mutating _N after source execution.
-del _B,_I,_L,_R,_S1,_S2,_K,_P,_V,_S,_C,_i,_m,_r,_x,_n4,_ks,_mr,_q,_v,_N,_G,_hh,_hz
+    # Discard the plaintext string before running user code.  CPython may reclaim
+    # it immediately; no plaintext source is retained as a module global.
+    del _source
+
+    # Exact module semantics: definitions execute in the actual module globals.
+    exec(_code, _g, _g)
+
+_hkd_v4_bootstrap(globals())
+del _hkd_v4_bootstrap
